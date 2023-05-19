@@ -1,2 +1,5 @@
-# eks-istio-mesh-spire-fed
+# README
+
 Istio Service Mesh with Spire Federation between EKS clusters
+
+## Steps
