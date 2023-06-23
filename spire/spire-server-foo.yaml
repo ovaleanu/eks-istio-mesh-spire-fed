@@ -78,7 +78,7 @@ data:
         }
         # NOTE: Change with your domain and spire server node
         federates_with "bar.com" {
-          bundle_endpoint_url = "https://<your-bar-spire-server-node>:30007"
+          bundle_endpoint_url = "https://ip-10-3-42-143.eu-west-2.compute.internal:30007"
           bundle_endpoint_profile "https_spiffe" {
             endpoint_spiffe_id = "spiffe://bar.com/spire/server"
           }

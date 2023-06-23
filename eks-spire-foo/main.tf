@@ -52,25 +52,11 @@ locals {
 #tfsec:ignore:aws-eks-enable-control-plane-logging
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
-  version = "~> 19.12"
+  version = "~> 19.13"
 
   cluster_name                   = local.name
   cluster_version                = local.cluster_version
   cluster_endpoint_public_access = true
-
-  # EKS Addons
-  cluster_addons = {
-    coredns = {
-      most_recent = true
-    }
-    kube-proxy = {
-      most_recent = true
-    }
-    vpc-cni = {
-      before_compute = true
-      most_recent    = true # To ensure access to the latest settings provided
-    }
-  }
 
   vpc_id     = module.vpc.vpc_id
   subnet_ids = module.vpc.private_subnets
@@ -132,27 +118,34 @@ module "eks" {
 # Kubernetes Addons
 ################################################################################
 
-module "eks_blueprints_kubernetes_addons" {
-  source = "github.com/aws-ia/terraform-aws-eks-blueprints/modules/kubernetes-addons"
+module "eks_blueprints_addons" {
+  source = "aws-ia/eks-blueprints-addons/aws"
+  version = "~> 1.0"
 
-  eks_cluster_id       = module.eks.cluster_name
-  eks_cluster_endpoint = module.eks.cluster_endpoint
-  eks_oidc_provider    = module.eks.oidc_provider
-  eks_cluster_version  = module.eks.cluster_version
-
+  cluster_name      = module.eks.cluster_name
+  cluster_endpoint  = module.eks.cluster_endpoint
+  cluster_version   = module.eks.cluster_version
+  oidc_provider_arn = module.eks.oidc_provider_arn
 
   # Add-ons
-  enable_amazon_eks_aws_ebs_csi_driver = true
-  amazon_eks_aws_ebs_csi_driver_config = {
-    most_recent       = true
-    resolve_conflicts = "OVERWRITE"
+  eks_addons = {
+    aws-ebs-csi-driver = {
+      service_account_role_arn = module.ebs_csi_driver_irsa.iam_role_arn
+    }
+    coredns    = {
+      most_recent = true
+    }
+    vpc-cni    = {
+      most_recent = true
+      before_compute = true
+    }
+    kube-proxy = {
+      most_recent = true
+    }
   }
-
+  
   enable_aws_load_balancer_controller = true
-  aws_load_balancer_controller_helm_config = {
-    service_account = "aws-lb-sa"
-  }
-  enable_cert_manager = true
+  #enable_cert_manager = true
 
   tags = local.tags
 }
@@ -178,7 +171,7 @@ resource "aws_security_group_rule" "allow_sidecar_injection" {
 
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
-  version = "~> 4.0"
+  version = "~> 5.0"
 
   name = local.name
   cidr = local.vpc_cidr
@@ -196,6 +189,24 @@ module "vpc" {
 
   private_subnet_tags = {
     "kubernetes.io/role/internal-elb" = 1
+  }
+
+  tags = local.tags
+}
+
+module "ebs_csi_driver_irsa" {
+  source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
+  version = "~> 5.20"
+
+  role_name_prefix = "${module.eks.cluster_name}-ebs-csi-driver-"
+
+  attach_ebs_csi_policy = true
+
+  oidc_providers = {
+    main = {
+      provider_arn               = module.eks.oidc_provider_arn
+      namespace_service_accounts = ["kube-system:ebs-csi-controller-sa"]
+    }
   }
 
   tags = local.tags

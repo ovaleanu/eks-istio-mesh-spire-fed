@@ -14,6 +14,6 @@ kubectl config use-context $CTX_CLUSTER2
 
 
 # Change with your cluster names and API Endpoints
-istioctl x create-remote-secret --context="${CTX_CLUSTER1}" --name=eks-foo-cluster --server=<your-eks-foo-cluster-api-endpoint> | kubectl apply -f - --context="${CTX_CLUSTER2}"
+istioctl x create-remote-secret --context="${CTX_CLUSTER1}" --name=eks-foo-cluster --server=https://903782AF976B9C40A13B6B42A05C2941.gr7.eu-west-2.eks.amazonaws.com | kubectl apply -f - --context="${CTX_CLUSTER2}"
 
-istioctl x create-remote-secret --context="${CTX_CLUSTER2}" --name=eks-bar-cluster --server=<your-eks-bar-cluster-api-endpoint> | kubectl apply -f - --context="${CTX_CLUSTER1}"
+istioctl x create-remote-secret --context="${CTX_CLUSTER2}" --name=eks-bar-cluster --server=https://ED16C30970D50FFD76357847E3E60D20.gr7.eu-west-2.eks.amazonaws.com | kubectl apply -f - --context="${CTX_CLUSTER1}"
