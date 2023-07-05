@@ -3,6 +3,9 @@
 export CTX_CLUSTER1=eks-foo-cluster
 export CTX_CLUSTER2=eks-bar-cluster
 
+kubectl delete --context="${CTX_CLUSTER2}" virtualservice helloworld -n helloworld
+kubectl delete --context="${CTX_CLUSTER2}" gateway helloworld-gateway -n helloworld
+
 kubectl delete --context="${CTX_CLUSTER1}" deployment helloworld-v1 -n helloworld
 kubectl delete --context="${CTX_CLUSTER2}" deployment helloworld-v2 -n helloworld
 

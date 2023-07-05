@@ -57,6 +57,8 @@ module "eks" {
   cluster_name                   = local.name
   cluster_version                = local.cluster_version
   cluster_endpoint_public_access = true
+  
+  manage_aws_auth_configmap = true
 
   vpc_id     = module.vpc.vpc_id
   subnet_ids = module.vpc.private_subnets
@@ -132,20 +134,15 @@ module "eks_blueprints_addons" {
     aws-ebs-csi-driver = {
       service_account_role_arn = module.ebs_csi_driver_irsa.iam_role_arn
     }
-    coredns    = {
-      most_recent = true
-    }
     vpc-cni    = {
-      most_recent = true
-      before_compute = true
+      service_account_role_arn = module.vpc_cni_ipv4_irsa.iam_role_arn
     }
-    kube-proxy = {
-      most_recent = true
-    }
+    kube-proxy = {}
+    coredns    = {} 
   }
   
   enable_aws_load_balancer_controller = true
-  #enable_cert_manager = true
+  enable_cert_manager = true
 
   tags = local.tags
 }
@@ -211,3 +208,19 @@ module "ebs_csi_driver_irsa" {
 
   tags = local.tags
 }
+
+module "vpc_cni_ipv4_irsa" {
+  source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
+  version = "~> 5.20"
+
+  role_name_prefix = "${module.eks.cluster_name}-vpc-cni-ipv4"
+
+  attach_vpc_cni_policy = true
+  vpc_cni_enable_ipv4   = true
+
+  oidc_providers = {
+    main = {
+      provider_arn               = module.eks.oidc_provider_arn
+      namespace_service_accounts = ["kube-system:aws-node"]
+    }
+  }
