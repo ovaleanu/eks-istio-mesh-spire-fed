@@ -224,3 +224,4 @@ module "vpc_cni_ipv4_irsa" {
       namespace_service_accounts = ["kube-system:aws-node"]
     }
   }
+}
