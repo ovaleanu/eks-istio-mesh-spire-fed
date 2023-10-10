@@ -118,3 +118,30 @@ Check `istiod` logs
 ```bash
 kubectl logs -l app=istiod -n istio-system -f
 ```
+
+### Cleanup
+
+Uninstall Istio on both clusters
+
+```bash
+./istio/cleanup-istio.sh
+```
+
+Uninstall Spire on both clusters
+
+```bash
+./spire/cleanup-spire.sh
+```
+
+Uninstall EKS clusters
+
+```bash
+cd terraform/1.foo-eks
+terraform destroy --auto-approve
+
+cd ../2.bar-eks
+terraform destroy --auto-approve
+
+cd ./0.vpc
+terraform destroy --auto-approve
+```
