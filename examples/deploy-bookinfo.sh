@@ -1,7 +1,6 @@
 #/bin/bash
 
-export CTX_CLUSTER1=eks-foo-cluster
-export CTX_CLUSTER2=eks-bar-cluster
+export CTX_CLUSTER2=bar-eks-cluster
 
 
 kubectl config use-context ${CTX_CLUSTER2}
@@ -11,4 +10,6 @@ sleep 6
 
 echo " >>>Check whether SPIRE has issued an identity to the workload"
 
-kubectl exec -i -t spire-server-0 -n spire -c spire-server -- /bin/sh -c "bin/spire-server entry show -socketPath /run/spire/sockets/server.sock"
+kubectl exec -i -t -n spire -c spire-server \
+  "$(kubectl get pod -n spire -l app=spire-server -o jsonpath='{.items[0].metadata.name}')" \
+  -- ./bin/spire-server entry show

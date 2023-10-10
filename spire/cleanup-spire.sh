@@ -1,21 +1,9 @@
 #!/bin/bash
 
 
-export CTX_CLUSTER1=eks-foo-cluster
-export CTX_CLUSTER2=eks-bar-cluster
+export CTX_CLUSTER1=foo-eks-cluster
+export CTX_CLUSTER2=bar-eks-cluster
 
-kubectl config use-context ${CTX_CLUSTER1}
-kubectl delete CustomResourceDefinition spiffeids.spiffeid.spiffe.io
-kubectl delete -f k8s-workload-registrar-crd-configmap-foo.yaml 
-kubectl delete -f k8s-workload-registrar-crd-cluster-role.yaml  
-kubectl delete clusterrole spire-server-trust-role spire-agent-cluster-role
-kubectl delete clusterrolebinding spire-server-trust-role-binding spire-agent-cluster-role-binding
-kubectl delete namespace spire
+kubectl delete -f ./foo-spire.yaml --context="${CTX_CLUSTER1}"
 
-kubectl config use-context ${CTX_CLUSTER2}
-kubectl delete CustomResourceDefinition spiffeids.spiffeid.spiffe.io
-kubectl delete -f k8s-workload-registrar-crd-configmap-bar.yaml 
-kubectl delete -f k8s-workload-registrar-crd-cluster-role.yaml  
-kubectl delete clusterrole spire-server-trust-role spire-agent-cluster-role
-kubectl delete clusterrolebinding spire-server-trust-role-binding spire-agent-cluster-role-binding
-kubectl delete namespace spire
+kubectl delete -f ./bar-spire.yaml --context="${CTX_CLUSTER2}" 

@@ -4,39 +4,30 @@ Istio Service Mesh with Spire Federation between EKS clusters
 
 ## Steps
 
-### Create clusters
+### Create the clusters
 
-#### Create `eks-foo-cluster`
+#### Create the VPCs for the clusters and the peering between them
 
 ```bash
-cd eks-spire-foo
+cd terraform/0.vpc
 terraform init
 terraform apply --auto-approve
 ```
 
-#### Create `eks-bar-cluster`
+#### Create `foo-eks-cluster`
 
 ```bash
-cd eks-spire-bar
+cd ../1.foo-eks
 terraform init
 terraform apply --auto-approve
 ```
 
-**Note**: To be added later in TF: Create the VPC peering between the clusters. Add an inbopund rule in the security group of the clusters ndoes allowing TCP traffic from the other VPC.
-
-The root CA is a self-signed certificate. Configure the root CA on each cluster
+#### Create `bar-eks-cluster`
 
 ```bash
-export CTX_CLUSTER1=eks-foo-cluster
-export CTX_CLUSTER2=eks-bar-cluster
-
-kubectl apply \
-  -f ./cert-manager/self-signed-ca.yaml \
-  -f ./cert-manager/istio-cert.yaml --context="${CTX_CLUSTER1}"
-
-kubectl apply \
-  -f ./cert-manager/self-signed-ca.yaml \
-  -f ./cert-manager/istio-cert.yaml --context="${CTX_CLUSTER2}"
+cd ../2.bar-eks
+terraform init
+terraform apply --auto-approve
 ```
 
 ### Install Spire on the clusters with federation
@@ -44,6 +35,7 @@ kubectl apply \
 **Note**: Change the name of the node in `spire-server-*.yaml` with the node labeled to run only spire server
 
 ```bash
+cd ../../spire
 ./install-spire.sh
 ```
 
@@ -54,13 +46,15 @@ kubectl apply \
 `istioctl` needs to be in the PATH
 
 ```bash
+cd ../istio
 ./install-istio.sh
 ```
 
 ### Deploy `helloworld` on both clusters and check federation
 
 ```bash
-./helloworld/deploy.sh
+cd ../examples
+./deploy-heloworld.sh
 ```
 
 Curl `helloworld` endpoint to see if they are up. It should respond from both clusters
@@ -69,12 +63,16 @@ Curl `helloworld` endpoint to see if they are up. It should respond from both cl
 kubectl exec --context="${CTX_CLUSTER1}" -n sleep -c sleep \
     "$(kubectl get pod --context="${CTX_CLUSTER1}" -n sleep -l \
     app=sleep -o jsonpath='{.items[0].metadata.name}')" \
-    -- sh -c "while true; do curl -sS helloworld.helloworld:5000/hello; done"
+    -- sh -c "while :; do curl -sS helloworld.helloworld:5000/hello; sleep 1; done"
 ```
 
-Create a Gateway and a Virtual Service for `helloworld` on `eks-bar-cluster`
+Scale down to 0 the helloworld-v1 and create a Gateway and a Virtual Service for `helloworld` on `eks-bar-cluster`
 
 ```bash
+kubectl -n helloworld scale deploy helloworld-v1 --context="${CTX_CLUSTER1}" --replicas 0
+
+sleep 2
+
 kubectl apply --context="${CTX_CLUSTER2}" \
     -f ./helloworld/helloworld-gateway.yaml -n helloworld
 
@@ -90,7 +88,7 @@ Check the service by calling the Virtual Service from the foo cluster
 kubectl exec --context="${CTX_CLUSTER1}" -n sleep -c sleep \
     "$(kubectl get pod --context="${CTX_CLUSTER1}" -n sleep -l \
     app=sleep -o jsonpath='{.items[0].metadata.name}')" \
-    -- sh -c "while true; do curl -s http://$GATEWAY_URL/hello; done"
+    -- sh -c "while :; do curl -s http://$GATEWAY_URL/hello; sleep 1; done"
 ```
 
 ### Deploy bookinfo app
