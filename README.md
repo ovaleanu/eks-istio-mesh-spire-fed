@@ -32,8 +32,6 @@ terraform apply --auto-approve
 
 ### Install Spire on the clusters with federation
 
-**Note**: Change the name of the node in `spire-server-*.yaml` with the node labeled to run only spire server
-
 ```bash
 cd ../../spire
 ./install-spire.sh
@@ -41,7 +39,8 @@ cd ../../spire
 
 ### Install Istio on the clusters
 
-**Note**: Modify the API endpoints
+**Note**: Expose EKS API endpoints from terraform outputs
+
 
 `istioctl` needs to be in the PATH
 

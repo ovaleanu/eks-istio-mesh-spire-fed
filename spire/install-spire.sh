@@ -5,6 +5,9 @@ set -e
 export CTX_CLUSTER1=foo-eks-cluster
 export CTX_CLUSTER2=bar-eks-cluster
 
+SPIRE_SERVER_NODE_FOO=$(kubectl get no -l dedicated=spire-server --context="${CTX_CLUSTER1}" -o jsonpath='{.items[*].metadata.name}')
+SPIRE_SERVER_NODE_BAR=$(kubectl get no -l dedicated=spire-server --context="${CTX_CLUSTER2}" -o jsonpath='{.items[*].metadata.name}')
+
 # Install Spire on foo cluster
 kubectl apply -f ./configmaps.yaml --context="${CTX_CLUSTER1}"
 kubectl apply -f ./foo-spire.yaml --context="${CTX_CLUSTER1}"
