@@ -4,6 +4,13 @@ Istio Service Mesh with Spire Federation between EKS clusters
 
 ## Steps
 
+### Download the GitHub repository on your computer
+
+```bash
+git clone https://github.com/ovaleanu/eks-istio-mesh-spire-fed.git
+cd eks-istio-mesh-spire-fed
+```
+
 ### Create the clusters
 
 #### Create the VPCs for the clusters and the peering between them
@@ -30,30 +37,29 @@ terraform init
 terraform apply --auto-approve
 ```
 
+Go to home folder
+
 ### Install Spire on the clusters with federation
 
 ```bash
-cd ../../spire
-./install-spire.sh
+./spire/install-spire.sh
 ```
 
 ### Install Istio on the clusters
 
-**Note**: Expose EKS API endpoints from terraform outputs
+**Note**: You will need EKS API endpoints from terraform outputs
 
 
 `istioctl` needs to be in the PATH
 
 ```bash
-cd ../istio
-./install-istio.sh
+./istio/install-istio.sh <cluster_endpoint_foo> <cluster_endpoint_bar>
 ```
 
 ### Deploy `helloworld` on both clusters and check federation
 
 ```bash
-cd ../examples
-./deploy-heloworld.sh
+./examples/deploy-heloworld.sh
 ```
 
 Curl `helloworld` endpoint to see if they are up. It should respond from both clusters
@@ -73,7 +79,7 @@ kubectl -n helloworld scale deploy helloworld-v1 --context="${CTX_CLUSTER1}" --r
 sleep 2
 
 kubectl apply --context="${CTX_CLUSTER2}" \
-    -f ./helloworld/helloworld-gateway.yaml -n helloworld
+    -f ./examples/helloworld-gateway.yaml -n helloworld
 
 export INGRESS_NAME=istio-ingressgateway
 export INGRESS_NS=istio-system
@@ -141,6 +147,6 @@ terraform destroy --auto-approve
 cd ../2.bar-eks
 terraform destroy --auto-approve
 
-cd ./0.vpc
+cd ../0.vpc
 terraform destroy --auto-approve
 ```

@@ -20,29 +20,29 @@ kubectl label --context="${CTX_CLUSTER2}" namespace helloworld \
     istio-injection=enabled
 
 kubectl apply --context="${CTX_CLUSTER1}" \
-    -f helloworld-foo.yaml \
+    -f ./examples/helloworld-foo.yaml \
     -l service=helloworld -n helloworld
 kubectl apply --context="${CTX_CLUSTER2}" \
-    -f helloworld-bar.yaml \
+    -f ./examples/helloworld-bar.yaml \
     -l service=helloworld -n helloworld
 
 kubectl apply --context="${CTX_CLUSTER1}" \
-    -f helloworld-foo.yaml -n helloworld
+    -f ./examples/helloworld-foo.yaml -n helloworld
 
 kubectl -n helloworld --context="${CTX_CLUSTER1}" rollout status deploy helloworld-v1
 kubectl -n helloworld get pod --context="${CTX_CLUSTER1}" -l app=helloworld
 
 kubectl apply --context="${CTX_CLUSTER2}" \
-    -f helloworld-bar.yaml -n helloworld
+    -f ./examples/helloworld-bar.yaml -n helloworld
 
 kubectl -n helloworld  --context="${CTX_CLUSTER2}" rollout status deploy helloworld-v2
 kubectl -n helloworld get pod --context="${CTX_CLUSTER2}" -l app=helloworld
 
 
 kubectl apply --context="${CTX_CLUSTER1}" \
-    -f sleep-foo.yaml -n sleep
+    -f ./examples/sleep-foo.yaml -n sleep
 kubectl apply --context="${CTX_CLUSTER2}" \
-    -f sleep-bar.yaml -n sleep
+    -f ./examples/sleep-bar.yaml -n sleep
 
 kubectl -n sleep  --context="${CTX_CLUSTER1}" rollout status deploy sleep
 kubectl -n sleep get pod --context="${CTX_CLUSTER1}" -l app=sleep
